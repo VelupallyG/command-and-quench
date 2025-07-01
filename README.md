@@ -1,129 +1,137 @@
-# Whisper + Gemini Drink Dispenser Pipeline
+# Whisper + Gemini Voice-Activated Drink Dispenser
 
-This project creates a **hands-free, AI-powered drink dispenser** by:
+This project enables a hands-free, voice-activated drink dispensing pipeline using:
 
-✅ Using **Whisper** (`mic_transcribe.py`) to transcribe **live speech**.  
-✅ Writing transcriptions to `transcriptions/transcriptions.txt`.  
-✅ Watching for **new lines** with `watcher.py` and triggering `main.py`.  
-✅ Using **Gemini** to analyze the transcription for drink requests.  
-✅ Automatically calling your **physical drink dispenser** if needed.
+- Whisper for live speech-to-text transcription.
+- Gemini for intelligent intent detection.
+- Arduino/WebSocket for hardware dispensing control.
+- Watcher and auto-termination pipeline to prevent repeated triggers.
 
 ---
 
 ## Project Structure
 
 ```
-/DRINK
+/drink
+    mic_transcribe.py          # Records audio, transcribes, appends to transcriptions.txt
+    watcher.py                 # Watches transcriptions.txt for valid requests, triggers main.py
+    main.py                    # Calls Gemini for intent analysis, triggers drink dispensing
+    tool_definitions.py        # Handles hardware (Arduino/WebSocket) control for dispensing
+    server.py                  # (Optional) WebSocket test server
+    uno.ino                    # Arduino sketch for hardware dispensing
+    requirements.txt           # Python dependencies
+    .env                       # API keys and environment variables
+    /transcriptions
+        transcriptions.txt     # Stores transcription logs
     /logs
         mic_transcribe.log
         watcher.log
-    /transcriptions
-        transcriptions.txt
-    launch_demo.sh
-    main.py
-    mic_transcribe.py
-    watcher.py
-    tool_definitions.py
-    README.md
-    requirements.txt
-    .env
-    .gitignore
 ```
 
 ---
 
-## Setup
+## Setup Instructions
 
-### Clone the repository:
+### 1. Clone the repository
+
 ```bash
 git clone <repo_url>
-cd DRINK
+cd drink
 ```
 
-### Install dependencies:
+### 2. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
-Ensure you also have:
-- `whisper`
-- `watchdog`
-- `google-generativeai`
-- `pyserial` (if using physical hardware)
 
-### Configure your environment:
-- Create a `.env` file:
-    ```
-    API_KEY=<Your_Gemini_API_Key>
-    ```
-- Confirm your hardware serial port in `tool_definitions.py`:
-    ```python
-    SERIAL_PORT = '/dev/tty.usbmodemXXXX'
-    ```
+### 3. Configure environment variables
+
+Create a `.env` file:
+
+```
+API_KEY=<YOUR_GEMINI_API_KEY>
+```
+
+### 4. Set up your Arduino (optional)
+
+- Flash `uno.ino` to your Arduino if using direct serial dispensing.
+- Confirm the correct `SERIAL_PORT` in `tool_definitions.py`.
 
 ---
 
 ## Usage
 
-### 🚦 One-command demo pipeline:
-Run:
+### One-command pipeline
+
+Run each in separate terminals:
+
 ```bash
-./launch_demo.sh
+python mic_transcribe.py
 ```
-This will:
-✅ Start **`mic_transcribe.py`** for live speech-to-text.  
-✅ Start **`watcher.py`** to auto-trigger **`main.py`** on new lines.  
-✅ Automatically process requests and **dispense drinks when requested.**
 
-### Logs:
-- `logs/mic_transcribe.log` – Live transcriptions.
-- `logs/watcher.log` – Gemini pipeline triggers and decisions.
+```bash
+python watcher.py
+```
 
----
+The pipeline will:
 
-## Individual Scripts
-
-- **`mic_transcribe.py`** – Live mic → Whisper → `transcriptions.txt`.
-- **`watcher.py`** – Watches `transcriptions.txt` for updates, triggers `main.py`.
-- **`main.py`** – Uses Gemini to analyze if the user requested a drink.
-- **`tool_definitions.py`** – Handles actual drink dispensing (via microcontroller/WebSocket).
+- Transcribe live audio to `transcriptions/transcriptions.txt`.
+- `watcher.py` will detect drink-related requests and trigger `main.py`.
+- `main.py` will call Gemini to verify intent and execute `dispense_drink` if appropriate.
+- After a successful dispense, a `dispense_done.flag` will prevent further triggers until manually reset.
 
 ---
 
 ## Features
 
-✅ Fully automated **speech-to-action pipeline**.  
-✅ Uses **Google Gemini** to interpret intent.  
-✅ Auto-triggers **hardware action** on valid requests.  
-✅ Cross-platform with **`watchdog`** for instant updates.  
-✅ Clear logs for debugging and demos.
+- Voice-triggered dispensing using Whisper and Gemini.
+- Prevents repeated triggers after a successful dispense.
+- Handles hardware dispensing via Arduino or WebSocket.
+- Auto-terminates transcription on dispense completion.
+- Pre-filtering keywords and context-based Gemini verification.
 
 ---
 
 ## Testing Without Hardware
 
-If you do not have your microcontroller connected:
-- Use the WebSocket simulator in `tool_definitions.py`.
-- Or replace `dispense_drink` with a simple print statement for simulation.
+- Use the WebSocket test server (`server.py`) instead of Arduino for dry-run testing:
+
+```bash
+python server.py
+```
+
+- Replace `dispense_drink` with a `print` statement for simulation.
+
+---
+
+## Resetting for Next Use
+
+After a successful dispense:
+
+```bash
+rm dispense_done.flag
+```
+
+to reset the pipeline for the next cycle.
 
 ---
 
 ## Future Improvements
 
-✅ Slack/Discord notifications when a drink is dispensed.  
-✅ Real-time dashboard for monitoring requests and actions.  
-✅ Voice-controlled multi-action pipeline (e.g., lights, music).  
-✅ Debounce and advanced transcript filtering for stability.
+- Slack/Discord notifications on dispense.
+- Real-time dashboard for pipeline monitoring.
+- Multi-intent voice command support.
+- Integration with cloud-based Gemini streaming for lower latency.
 
 ---
 
 ## Contributions
-Feel free to fork, improve, and contribute to this hands-free AI automation pipeline.
+
+Feel free to fork, improve, and contribute to this open-source, voice-activated drink dispenser pipeline.
 
 ---
 
 ## License
+
 MIT License
-
----
-
-**Enjoy your fully automated Whisper + Gemini voice-triggered drink dispenser pipeline!** 
