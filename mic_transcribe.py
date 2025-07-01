@@ -11,8 +11,8 @@ OUTPUT_DIR = "transcriptions"
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 44100  # Match your mic's default sample rate
-RECORD_SECONDS = 1
+RATE = 44100
+RECORD_SECONDS = 3
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 model = whisper.load_model(MODEL_SIZE)
@@ -22,6 +22,11 @@ print("[INFO] Starting mic transcription. Press CTRL+C to stop.")
 
 try:
     while True:
+        # ✅ Check if dispense_done.flag exists, terminate if so
+        if os.path.exists("dispense_done.flag"):
+            print("[INFO] Dispense completed. Stopping transcription.")
+            break
+
         print("[INFO] Opening stream...")
         stream = p.open(format=FORMAT,
                         channels=CHANNELS,
@@ -59,10 +64,11 @@ try:
         except Exception as e:
             print(f"[ERROR] Transcription failed: {e}")
 
-        time.sleep(1)  # Optional: avoid immediate re-record
+        time.sleep(1)  # Shorter pause for responsiveness
 
 except KeyboardInterrupt:
     print("\n[INFO] Stopped by user.")
-    p.terminate()
-    if os.path.exists("temp.wav"):
-        os.remove("temp.wav")
+
+p.terminate()
+if os.path.exists("temp.wav"):
+    os.remove("temp.wav")

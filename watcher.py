@@ -5,14 +5,19 @@ from watchdog.events import FileSystemEventHandler
 import subprocess
 import os
 
-# Absolute path to your transcriptions.txt
+# Paths
 TRANSCRIPT_PATH = os.path.join(os.getcwd(), "transcriptions", "transcriptions.txt")
 TRANSCRIPT_DIR = os.path.dirname(TRANSCRIPT_PATH)
+FLAG_PATH = os.path.join(os.getcwd(), "dispense_done.flag")
 
 class TranscriptHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        # Use absolute path comparison for reliability
         if os.path.abspath(event.src_path) == os.path.abspath(TRANSCRIPT_PATH):
+            # ✅ Check for dispense_done.flag before triggering
+            if os.path.exists(FLAG_PATH):
+                print("🚫 Dispense done flag detected. Skipping Gemini pipeline trigger.")
+                return
+
             print(f"Detected change in {event.src_path}, triggering Gemini pipeline...")
             subprocess.run(["python", "main.py"])
 
@@ -26,7 +31,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            time.sleep(1)
+            time.sleep(0.2)  # Faster polling for responsiveness
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
