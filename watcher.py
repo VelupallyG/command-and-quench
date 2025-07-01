@@ -6,9 +6,20 @@ import subprocess
 import os
 
 # Paths
-TRANSCRIPT_PATH = os.path.join(os.getcwd(), "transcriptions", "transcriptions.txt")
+BASE_DIR = os.getcwd()
+TRANSCRIPT_PATH = os.path.join(BASE_DIR, "transcriptions", "transcriptions.txt")
 TRANSCRIPT_DIR = os.path.dirname(TRANSCRIPT_PATH)
-FLAG_PATH = os.path.join(os.getcwd(), "dispense_done.flag")
+FLAG_PATH = os.path.join(BASE_DIR, "dispense_done.flag")
+
+def get_last_line(file_path):
+    """
+    Returns the last non-empty line from the specified file.
+    """
+    with open(file_path, 'r') as file:
+        lines = [line.strip() for line in file if line.strip()]
+        if lines:
+            return lines[-1].lower()
+    return ""
 
 class TranscriptHandler(FileSystemEventHandler):
     def on_modified(self, event):
@@ -18,8 +29,16 @@ class TranscriptHandler(FileSystemEventHandler):
                 print("🚫 Dispense done flag detected. Skipping Gemini pipeline trigger.")
                 return
 
-            print(f"Detected change in {event.src_path}, triggering Gemini pipeline...")
-            subprocess.run(["python", "main.py"])
+            # ✅ Check the last line for drink-related keywords before triggering
+            last_line = get_last_line(TRANSCRIPT_PATH)
+            keywords = ["drink", "thirsty", "water", "beverage"]
+
+            if any(keyword in last_line for keyword in keywords):
+                print(f"✅ Valid request detected in transcription: '{last_line}'")
+                print(f"Detected change in {event.src_path}, triggering Gemini pipeline...")
+                subprocess.run(["python", "main.py"])
+            else:
+                print(f"⚠️ Ignored line: '{last_line}' (No drink-related keywords detected)")
 
 if __name__ == "__main__":
     event_handler = TranscriptHandler()
