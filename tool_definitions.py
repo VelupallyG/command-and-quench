@@ -8,11 +8,11 @@ async def dispense_drink():
     try:
         async with websockets.connect(uri) as websocket:
             msg = "Dispense Drink!"
-            print(f"📤 Client sending: {msg}")
+            print(f"Client sending: {msg}")
             await websocket.send(msg)
             response = await websocket.recv()
-            print(f"📥 Client received: {response}")
+            print(f"Client received: {response}")
             return True
     except Exception as e:
-        print(f"❌ WebSocket error: {e}")
+        print(f"WebSocket error: {e}")
         return False
