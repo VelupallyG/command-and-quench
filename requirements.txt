@@ -3,3 +3,4 @@ pyaudio
 numpy
 black
 python-dotenv
+asyncio

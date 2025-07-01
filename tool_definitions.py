@@ -42,63 +42,21 @@
 #         return f"❌ Failed to dispense drink: {response}"
 
 # tool_definitions.py
-import asyncio
 import websockets
-import threading
-import time
 
-# Configuration
-WEBSOCKET_URL = 'ws://localhost:8080'
-
-# Test WebSocket Server
-async def test_server(websocket):
-    """Simple test server that responds to '1' with dispense confirmation."""
-    print("🖥️  Test server: Client connected")
-    try:
-        async for message in websocket:
-            print(f"🖥️  Test server: Received '{message}'")
-            if message == "1":
-                print("🖥️  Test server: Dispensing drink...")
-                await websocket.send("OK")
-    except websockets.exceptions.ConnectionClosed:
-        print("🖥️  Test server: Client disconnected")
-
-def start_test_server():
-    """Start the test WebSocket server in background."""
-    print("🖥️  Starting test WebSocket server on port 8080...")
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    async def run_server():
-        async with websockets.serve(test_server, "localhost", 8080):
-            await asyncio.Future()  # Run forever
-    
-    loop.run_until_complete(run_server())
-
-# Client functions
 async def dispense_drink():
-    """Send '1' to WebSocket to dispense drink."""
+    """
+    Dispenses a drink can by sending a signal to the microcontroller.
+    """
+    uri = "ws://localhost:8765"
     try:
-        async with websockets.connect(WEBSOCKET_URL) as websocket:
-            await websocket.send("1")
+        async with websockets.connect(uri) as websocket:
+            msg = "Dispense Drink!"
+            print(f"📤 Client sending: {msg}")
+            await websocket.send(msg)
             response = await websocket.recv()
-            print(f"✅ MCU responded: {response}")
+            print(f"📥 Client received: {response}")
             return True
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ WebSocket error: {e}")
         return False
-
-def dispense():
-    """Simple function to dispense a drink."""
-    return asyncio.run(dispense_drink())
-
-if __name__ == "__main__":
-    # Start test server in background thread
-    server_thread = threading.Thread(target=start_test_server, daemon=True)
-    server_thread.start()
-    
-    # Wait for server to start
-    time.sleep(1)
-    
-    print("📱 Dispensing drink...")
-    dispense()

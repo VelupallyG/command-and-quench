@@ -3,6 +3,7 @@ import google.generativeai as genai
 import time
 import os
 from dotenv import load_dotenv
+import asyncio
 
 from tool_definitions import dispense_drink
 
@@ -61,7 +62,7 @@ def run_gemini_conversation(user_prompt: str):
             
             function_to_call = available_tools.get(function_name)
             if function_to_call:
-                result = function_to_call(**dict(args))
+                result = asyncio.run(function_to_call(**dict(args)))
                 print(f"Function result: {result}")
             else:
                 print(f"ERROR: Unknown function '{function_name}'")
