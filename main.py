@@ -32,7 +32,11 @@ Examples of when to dispense a drink:
 - "Get me a beverage"
 - Any mention of being thirsty or wanting liquid refreshment
 
-Your role is to take action, not to explain limitations. If someone wants a drink, dispense it immediately using the available tool."""
+Your role is to take action, not to explain limitations. If someone wants a drink, dispense it immediately using the available tool.
+
+If the user does not mention the word - drink or thrist; however, do not call any tool at your disposal.
+
+"""
 
 async def run_gemini_conversation(user_prompt: str):
     """

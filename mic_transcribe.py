@@ -12,7 +12,7 @@ CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100  # Match your mic's default sample rate
-RECORD_SECONDS = 5
+RECORD_SECONDS = 1
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 model = whisper.load_model(MODEL_SIZE)
