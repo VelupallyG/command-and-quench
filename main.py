@@ -4,7 +4,6 @@ import time
 import os
 from dotenv import load_dotenv
 import asyncio
-
 from tool_definitions import dispense_drink
 
 # --- Configuration ---
@@ -35,9 +34,7 @@ Examples of when to dispense a drink:
 
 Your role is to take action, not to explain limitations. If someone wants a drink, dispense it immediately using the available tool."""
 
-
-
-def run_gemini_conversation(user_prompt: str):
+async def run_gemini_conversation(user_prompt: str):
     """
     Handles a single, stateless conversation with Gemini to execute a tool.
     """
@@ -62,7 +59,13 @@ def run_gemini_conversation(user_prompt: str):
             
             function_to_call = available_tools.get(function_name)
             if function_to_call:
-                result = asyncio.run(function_to_call(**dict(args)))
+                call_result = function_to_call(**dict(args))
+
+                if asyncio.iscoroutine(call_result):
+                    result = await call_result
+                else:
+                    result = call_result
+
                 print(f"Function result: {result}")
             else:
                 print(f"ERROR: Unknown function '{function_name}'")
@@ -81,10 +84,9 @@ def get_last_line(file_path):
             return lines[-1]
     return None
 
-# --- Main Execution Block ---
-if __name__ == "__main__":
-    print("🤖 Drink Dispensing Assistant Ready!")
-    print("💡 Will monitor 'transcriptions/transcriptions.txt' for updates...\n")
+async def main():
+    print("=== Drink Dispensing Assistant Ready! ===")
+    print("=== Will monitor 'transcriptions/transcriptions.txt' for updates...\n ===")
     
     transcript_path = os.path.join("transcriptions", "transcriptions.txt")
     last_mtime = None
@@ -98,5 +100,9 @@ if __name__ == "__main__":
                 latest_line = get_last_line(transcript_path)
                 if latest_line and latest_line != last_processed_line:
                     last_processed_line = latest_line
-                    run_gemini_conversation(latest_line)
-        time.sleep(2)  # Poll every 2 seconds
+                    await run_gemini_conversation(latest_line)
+        await asyncio.sleep(2)  # Poll every 2 seconds
+
+# --- Entry point ---
+if __name__ == "__main__":
+    asyncio.run(main())
