@@ -1,0 +1,5 @@
+openai-whisper
+pyaudio
+numpy
+black
+python-dotenv
