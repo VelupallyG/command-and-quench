@@ -3,4 +3,9 @@ pyaudio
 numpy
 black
 python-dotenv
-asyncio
+google.generativeai
+websockets
+watchdog
+serial
+pyserial
+whisper
