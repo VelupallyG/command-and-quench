@@ -1,22 +1,23 @@
-# Refined main_app.py using Gemini
+# main.py: Auto-check transcriptions and send to Gemini if updated
 import google.generativeai as genai
-import json
+import time
+import os
+from dotenv import load_dotenv
+
 from tool_definitions import dispense_drink
 
 # --- Configuration ---
-# Get your API key from Google AI Studio: https://aistudio.google.com/app/apikey
-# It's better to set this as an environment variable, but this is fine for testing.
-GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"
+load_dotenv()
+api_key = os.getenv("API_KEY")
+genai.configure(api_key=api_key)
 
-genai.configure(api_key="AIzaSyALVuqFwCV75ungfdOKHLMK18cn6Xi1jH8")
-
-# Tool mapping with drink dispenser added
+# Tool mapping with drink dispenser
 available_tools = {
     "dispense_drink": dispense_drink
 }
 
-# System prompt to make the AI more action-oriented
-SYSTEM_PROMPT = """You are an AI assistant controlling physical devices. You have access to tools that can control real hardware.
+# System prompt for Gemini
+SYSTEM_PROMPT = """You are an AI assistant controlling physical devices...
 
 IMPORTANT: When someone expresses thirst or wants a drink in ANY way, immediately use the dispense_drink() function. Do NOT ask questions or provide alternatives - just dispense the drink.
 
@@ -33,6 +34,8 @@ Examples of when to dispense a drink:
 
 Your role is to take action, not to explain limitations. If someone wants a drink, dispense it immediately using the available tool."""
 
+
+
 def run_gemini_conversation(user_prompt: str):
     """
     Handles a single, stateless conversation with Gemini to execute a tool.
@@ -40,25 +43,18 @@ def run_gemini_conversation(user_prompt: str):
     print(f"\n--- New Request ---")
     print(f"USER: {user_prompt}")
     
-    # Combine system prompt with user prompt
     full_prompt = f"{SYSTEM_PROMPT}\n\nUser request: {user_prompt}"
     
-    # BEST PRACTICE: Create the model for each self-contained request.
-    # This prevents chat history from growing and causing issues.
     model = genai.GenerativeModel(
         model_name='gemini-1.5-flash-latest',
         tools=[dispense_drink]
     )
     
-    # We send the message directly instead of starting a persistent chat session.
-    # This is more robust for a command-and-control system.
     response = model.generate_content(full_prompt)
-    print(response)
     
     try:
-        # The function call is in the first part of the first candidate
         function_call = response.candidates[0].content.parts[0].function_call
-        if function_call is not None:
+        if function_call:
             function_name = function_call.name
             args = function_call.args or {}
             print(f"GEMINI: Wants to call '{function_name}' with args: {dict(args)}")
@@ -68,25 +64,38 @@ def run_gemini_conversation(user_prompt: str):
                 result = function_to_call(**dict(args))
                 print(f"Function result: {result}")
             else:
-                print(f"SYSTEM: Error - Model tried to call unknown function '{function_name}'")
+                print(f"ERROR: Unknown function '{function_name}'")
         else:
-            print("GEMINI: No function call in this response.")
-    
+            print(f"GEMINI: No function call triggered.")
     except (AttributeError, IndexError):
-        # This happens if the model responds with text instead of a function call
         print(f"GEMINI: Responded with text: '{response.text}'")
+
+def get_last_line(file_path):
+    """
+    Returns the last non-empty line from the specified file.
+    """
+    with open(file_path, 'r') as file:
+        lines = [line.strip() for line in file if line.strip()]
+        if lines:
+            return lines[-1]
+    return None
 
 # --- Main Execution Block ---
 if __name__ == "__main__":
     print("🤖 Drink Dispensing Assistant Ready!")
-    print("💡 Say things like: 'I'm thirsty'")
-    print("Type 'quit' to exit.\n")
+    print("💡 Will monitor 'transcriptions/transcriptions.txt' for updates...\n")
     
+    transcript_path = os.path.join("transcriptions", "transcriptions.txt")
+    last_mtime = None
+    last_processed_line = ""
+
     while True:
-        prompt = input("Enter your command (or 'quit' to exit): ")
-        if prompt.lower() in ['quit', 'exit']:
-            break
-        if not prompt:  # Skip empty inputs
-            continue
-        
-        run_gemini_conversation(prompt)
+        if os.path.exists(transcript_path):
+            mtime = os.path.getmtime(transcript_path)
+            if last_mtime is None or mtime != last_mtime:
+                last_mtime = mtime
+                latest_line = get_last_line(transcript_path)
+                if latest_line and latest_line != last_processed_line:
+                    last_processed_line = latest_line
+                    run_gemini_conversation(latest_line)
+        time.sleep(2)  # Poll every 2 seconds
