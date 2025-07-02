@@ -9,11 +9,13 @@ This project enables a hands-free, voice-activated drink dispensing pipeline usi
 - Arduino for hardware dispensing control.
 - Watcher and auto-termination pipeline to prevent repeated triggers.
 
-## Description of Hardware
+## Hardware Description
 
-- See blank
+See...
 
 ## Video Demo:
+
+https://youtu.be/o4Xay_xm6lc
 
 ---
 
