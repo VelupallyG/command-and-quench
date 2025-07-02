@@ -11,7 +11,7 @@ This project enables a hands-free, voice-activated drink dispensing pipeline usi
 
 ## Hardware Description
 
-See...
+See folder named 'Mechanical' in repo for pictures of work done by our Mechanical Engineering Interns.
 
 ## Video Demo:
 
