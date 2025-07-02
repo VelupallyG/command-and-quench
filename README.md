@@ -1,4 +1,6 @@
-# Whisper + Gemini Voice-Activated Drink Dispenser
+# Command & Quench
+
+#### Whisper + Gemini Voice-Activated Drink Dispenser
 
 This project enables a hands-free, voice-activated drink dispensing pipeline using:
 
@@ -6,6 +8,10 @@ This project enables a hands-free, voice-activated drink dispensing pipeline usi
 - Gemini for intelligent intent detection.
 - Arduino/WebSocket for hardware dispensing control.
 - Watcher and auto-termination pipeline to prevent repeated triggers.
+
+##
+
+## Video Demo:
 
 ---
 
@@ -93,36 +99,10 @@ The pipeline will:
 
 ---
 
-## Testing Without Hardware
-
-- Use the WebSocket test server (`server.py`) instead of Arduino for dry-run testing:
-
-```bash
-python server.py
-```
-
-- Replace `dispense_drink` with a `print` statement for simulation.
-
----
-
-## Resetting for Next Use
-
-After a successful dispense:
-
-```bash
-rm dispense_done.flag
-```
-
-to reset the pipeline for the next cycle.
-
----
-
 ## Future Improvements
 
-- Slack/Discord notifications on dispense.
-- Real-time dashboard for pipeline monitoring.
-- Multi-intent voice command support.
-- Integration with cloud-based Gemini streaming for lower latency.
+- Define more tools
+- Transition from PySerial to WebSocket
 
 ---
 
