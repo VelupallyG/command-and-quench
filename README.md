@@ -6,10 +6,12 @@ This project enables a hands-free, voice-activated drink dispensing pipeline usi
 
 - Whisper for live speech-to-text transcription.
 - Gemini for intelligent intent detection.
-- Arduino/WebSocket for hardware dispensing control.
+- Arduino for hardware dispensing control.
 - Watcher and auto-termination pipeline to prevent repeated triggers.
 
-##
+## Description of Hardware
+
+- See blank
 
 ## Video Demo:
 
@@ -68,16 +70,16 @@ API_KEY=<YOUR_GEMINI_API_KEY>
 
 ## Usage
 
-### One-command pipeline
+### Two-command pipeline
 
 Run each in separate terminals:
 
 ```bash
-python mic_transcribe.py
+python watcher.py
 ```
 
 ```bash
-python watcher.py
+python mic_transcribe.py
 ```
 
 The pipeline will:
